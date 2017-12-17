@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="OFF">	
+	<Properties>
+        <Property name="debug-log-path">${web:rootDir}WEB-INF/logs/debug-logs</Property>
+        <Property name="info-log-path">${web:rootDir}WEB-INF/logs/info-logs</Property>
+        <Property name="error-log-path">${web:rootDir}WEB-INF/logs/error-logs</Property>
+    </Properties>
+
+	<appenders>
+		
+		<!-- Output to console -->
+		<Console name="console" target="SYSTEM_OUT">
+		<PatternLayout
+				charset="UTF-8"
+				pattern="[%d{yyyy-MM-dd HH:mm:ss}] %t%n   %-5level : %l - %msg%n" />
+		</Console>
+		
+		<!-- TRACE and DEBUG levle output to debug-logs folder -->
+		<RollingFile name="app_debug" fileName="${debug-log-path}/debug.log"
+			filePattern="${debug-log-path}/$${date:yyyy-MM}/app-%d{yyyy-MM-dd-HH}-%i.log.gz">
+			<ThresholdFilter level="INFO" onMatch="DENY" onMismatch="ACCEPT"/>
+			<PatternLayout 
+				charset="UTF-8"
+				pattern="[%d{yyyy-MM-dd HH:mm:ss}] %t%n   %-5level : %l - %msg%n" />
+			<SizeBasedTriggeringPolicy size="10 MB"/>
+		    <DefaultRolloverStrategy max="20"/>
+		</RollingFile>
+		
+		<!-- INFO levle output to info-logs folder -->
+		<RollingFile name="app_info" fileName="${info-log-path}/info.log"
+			filePattern="${info-log-path}/$${date:yyyy-MM}/app-%d{yyyy-MM-dd-HH}-%i.log.gz">
+			<Filters>
+				<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+				<ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+			</Filters>
+			<PatternLayout 
+				charset="UTF-8"
+				pattern="[%d{yyyy-MM-dd HH:mm:ss}] %t%n   %-5level : %l - %msg%n" />
+			<SizeBasedTriggeringPolicy size="20 MB"/>
+		    <DefaultRolloverStrategy max="20"/>
+		</RollingFile>
+		
+		<!-- WARN、ERROR and FATAL levle output to error-logs folder -->
+		<RollingFile name="app_error" fileName="${error-log-path}/error.log"
+			filePattern="${error-log-path}/$${date:yyyy-MM}/app-%d{yyyy-MM-dd-HH}-%i.log.gz">
+			<ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+			<PatternLayout 
+				charset="UTF-8"
+				pattern="[%d{yyyy-MM-dd HH:mm:ss}] %t%n   %-5level : %l - %msg%n" />
+		    <SizeBasedTriggeringPolicy size="10 MB"/>
+		    <DefaultRolloverStrategy max="20"/>
+		</RollingFile>
+	</appenders>
+	<loggers>
+		<logger name="org.hibernate.cfg.annotations" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.cfg" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.id" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.loader" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.persister" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.tool" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.validator" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.type" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.engine.internal" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.engine.jdbc.internal" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.engine.transaction" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.internal" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.event.internal" level="error" additivity="true"></logger>
+		<logger name="org.hibernate.hql" level="error" additivity="true"></logger>
+		<logger name="org.hibernate" level="error" additivity="true"></logger>
+		<logger name="net.sf.ehcache" level="error" additivity="true"></logger>
+		<logger name="org.apache.commons.beanutils.converters" level="error" additivity="true"></logger>
+		<logger name="org.dozer" level="error" additivity="true"></logger>
+		<logger name="org.springframework" level="error" additivity="true"></logger>
+		<logger name="org.apache.shiro" level="error" additivity="true"></logger>
+		<logger name="org.apache.http" level="error" additivity="true"></logger>
+		<logger name="springfox.documentation" level="error" additivity="true"></logger>
+		<root level="error">
+			<appender-ref ref="console" />
+			<appender-ref ref="app_debug"/>
+			<appender-ref ref="app_info"/>
+			<appender-ref ref="app_error"/>
+		</root>
+	</loggers>
+</configuration>  

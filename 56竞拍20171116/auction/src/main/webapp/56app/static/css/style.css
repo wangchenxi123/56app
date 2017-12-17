@@ -1,0 +1,51 @@
+@font-face{
+  font-family: "pinfang";
+  src: url('../font/pinfang.ttf');
+}
+
+html,body,div,span,h1,h2,h3,h4,h5,h6,p{
+  font: normal  "pinfang",sans-serif,'微软雅黑';
+  outline:none;
+}
+a {
+  text-decoration: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+body{
+	background-color:#fbfbfb;
+}
+ul li{
+	margin:0;
+	padding:0;
+	list-style: none;
+}
+.icon-list {
+	background-image: url('');
+}
+.icon-recorditem{
+	background-image: url('../icon/icon-recorditem.svg');
+	background-repeat: no-repeat;
+	display: inline-block;
+	width:32px;
+	height:32px;
+}
+.icon-recorditem.icon-pai-all{
+  background-position: 1px;
+  background-size:276px;
+}
+.icon-recorditem.icon-pai-time{
+  background-position: -60px;
+  background-size:276px;
+}
+.icon-recorditem.icon-pai-finish{
+  background-position: -121px;
+  background-size:276px;
+}
+.icon-recorditem.icon-pai-no{
+  background-position: -182px;
+  background-size:276px;
+}
+.icon-recorditem.icon-pai-wallet{
+  background-position: -244px;
+  background-size:276px;
+}

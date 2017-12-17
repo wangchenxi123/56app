@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<!-- 配置自动扫描的包 -->
+	<context:component-scan base-package="com.mierro" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+
+	<!-- 配置文件上传 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 以字节为单位 -->
+		<property name="maxUploadSize" value="10485760" />
+	</bean>
+
+	<mvc:default-servlet-handler/>
+
+	<!-- 启用注解驱动 -->
+	<mvc:annotation-driven
+			conversion-service="conversionService">
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+			<!-- 使用fastjson转换json -->
+			<bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+				<property name="supportedMediaTypes" value="application/json;charset=UTF-8"/>
+				<property name="features">
+					<array value-type="com.alibaba.fastjson.serializer.SerializerFeature">
+						<value>DisableCircularReferenceDetect</value>
+					</array>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<!-- 自定义数据转换器 json转换成bean-->
+	<bean id="conversionService"
+		  class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<property name="converters">
+			<set>
+				<bean class="com.mierro.common.common.JsonToVoConverterFactory"/>
+			</set>
+		</property>
+	</bean>
+
+
+	<!--kaptcha验证码生成器-->
+	<bean id="captchaProducer" class="com.google.code.kaptcha.impl.DefaultKaptcha">
+		<property name="config">
+			<bean class="com.google.code.kaptcha.util.Config">
+				<constructor-arg type="java.util.Properties">
+					<props>
+						<prop key="kaptcha.image.width">200</prop><!--验证码宽度-->
+						<prop key="kaptcha.image.height">50</prop><!--验证码高度-->
+						<!--<prop key="kaptcha.noise.color">blue</prop>&lt;!&ndash;干扰线颜色&ndash;&gt;-->
+						<prop key="kaptcha.noise.impl">com.google.code.kaptcha.impl.NoNoise</prop><!--验证码干扰实现-->
+						<prop key="kaptcha.textproducer.char.string">0123456789abcdefghijklmnopqrstuvwxyz</prop><!--验证码使用的string串-->
+						<prop key="kaptcha.textproducer.char.length">5</prop><!--验证码长度-->
+						<prop key="kaptcha.textproducer.font.names">宋体,楷体,微软雅黑</prop><!--验证码字体-->
+						<prop key="kaptcha.obscurificator.impl">com.google.code.kaptcha.impl.WaterRipple</prop>
+						<!--
+							验证码图片样式：
+								水纹com.google.code.kaptcha.impl.WaterRipple
+								鱼眼com.google.code.kaptcha.impl.FishEyeGimpy
+								阴影com.google.code.kaptcha.impl.ShadowGimpy
+						-->
+						<prop key="kaptcha.textproducer.char.space">10</prop><!-- 验证码文本字符间距 -->
+						<prop key="kaptcha.background.impl">com.google.code.kaptcha.impl.DefaultBackground</prop><!--验证码背景实现类-->
+						<prop key="kaptcha.background.clear.from">green</prop><!--背景颜色渐变，开始颜色-->
+						<prop key="kaptcha.background.clear.to">white</prop><!--背景颜色渐变， 结束颜色-->
+						<prop key="kaptcha.word.impl">com.google.code.kaptcha.text.impl.DefaultWordRenderer</prop><!--文字渲染器-->
+						<prop key="kaptcha.session.key">KAPTCHA_SESSION_KEY</prop><!--session key-->
+						<prop key="kaptcha.session.date">KAPTCHA_SESSION_DATE</prop><!--session date-->
+					</props>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+
+	<bean class="com.mierro.common.common.SpringTool"/>
+
+	<mvc:interceptors>
+
+		<!--系统异常维护判断-->
+		<mvc:interceptor>
+		<mvc:mapping path="/client/**" /><!--前台所有请求链接-->
+		<mvc:mapping path="/activity/**" /><!--活动请求链接-->
+		<bean class="com.mierro.authority.Interceptor.SystemInterceptor"/>
+		</mvc:interceptor>
+
+		<!--系统睡眠时间检测-->
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/admin/**"/>
+			<mvc:exclude-mapping path="/authority/**"/>
+			<bean class="com.mierro.main.Interceptor.SystemInterceptor"/>
+		</mvc:interceptor>
+
+
+		<!--同时在线人数检测器-->
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/**/login"/>
+			<bean class="com.mierro.authority.Interceptor.OnlineUsersDetectionInterceptor"/>
+		</mvc:interceptor>
+
+		<!--登陆检测拦截器-->
+		<mvc:interceptor>
+			<mvc:mapping path="/client/user" /><!--获取个人信息拦截-->
+			<mvc:mapping path="/authority/**" /><!--权限端所有接口-->
+			<mvc:mapping path="/client/recharge" /><!--充值拍币-->
+			<mvc:mapping path="/client/order/**" /><!--用户订单系列操作-->
+			<mvc:mapping path="/client/user/**" /><!--用户系列操作-->
+			<mvc:mapping path="/client/auction/record" /><!--个人订单查询-->
+			<mvc:mapping path="/client/sign/**" /><!--签到-->
+			<mvc:mapping path="/client/shot" /><!--进行竞拍操作-->
+			<mvc:mapping path="/client/password" /><!--修改密码-->
+			<mvc:mapping path="/client/invite/reward"/><!--用户获取邀请奖励接口-->
+			<mvc:mapping path="/client/integral/flow" /><!--查看用户积分流动-->
+			<mvc:mapping path="/client/order/address"/><!--用户设置中奖订单收货地址-->
+			<mvc:mapping path="/client/notice/**"/><!--用户通知-->
+			<mvc:mapping path="/admin/**" /><!--管理端所有接口-->
+			<mvc:mapping path="/activity/**" /><!--活动所有接口-->
+			<mvc:exclude-mapping path="/**/login"/>
+			<mvc:exclude-mapping path="/client/notice"/>
+			<mvc:exclude-mapping path="/client/notice/read"/>
+			<mvc:exclude-mapping path="/client/notice/announcement/list"/>
+			<!--<mvc:exclude-mapping path="/sendSMS/**"/>-->
+			<mvc:exclude-mapping path="/activity/turntable"/><!--前端获取大转盘数据接口-->
+			<bean class="com.mierro.authority.Interceptor.LoginInterceptor"/>
+		</mvc:interceptor>
+		<!--操作记录拦截器-->
+		<mvc:interceptor>
+			<mvc:mapping path="/authority/**" />
+			<mvc:mapping path="/admin/**" />
+			<mvc:exclude-mapping path="/**/login"/>
+			<bean class="com.mierro.authority.Interceptor.OperationRecordInterceptor"/>
+		</mvc:interceptor>
+
+	</mvc:interceptors>
+</beans>
